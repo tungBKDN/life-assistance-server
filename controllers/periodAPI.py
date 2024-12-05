@@ -44,28 +44,31 @@ def get_period(id):
 
 @period_bp.route('/periods', methods=['POST'])
 def create_period():
-    try:
-        data = request.get_json()
-        with db.session.begin():
-            # Create a new period
-            start_date = datetime.strptime(
-                data['start_date'], '%Y-%m-%d').date()
-            end_date = datetime.strptime(
-                data['end_date'], '%Y-%m-%d').date() if data.get('end_date') else None
-            period = Period(
-                drug_name=data['drug_name'], start_date=start_date, end_date=end_date)
-            db.session.add(period)
-            db.session.flush()  # Ensure period.id is available
+	try:
+		data = request.get_json()
+		with db.session.begin():
+			# Create a new period
+			start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+			end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date() if data.get('end_date') else None
+			# Check for invalid date range
+			if end_date and end_date < start_date:
+				raise ValueError('End date cannot be before start date.')
+			period = Period(drug_name=data['drug_name'], start_date=start_date, end_date=end_date)
+			db.session.add(period)
+			db.session.flush()  # Ensure period.id is available
 
-            schedules = data['schedules']
-            for schedule in schedules:
-                # Create a new schedule
-                time = datetime.strptime(schedule['time'], '%H:%M').time()
-                s = Schedule(period_id=period.id, message=schedule['message'], time=time)
-                db.session.add(s)
+			schedules = data['schedules']
+			for schedule in schedules:
+				# Create a new schedule
+				time = datetime.strptime(schedule['time'], '%H:%M').time()
+				s = Schedule(period_id=period.id, message=schedule['message'], time=time)
+				db.session.add(s)
 
-        return jsonify({'message': 'Period created successfully.'}), 201
-    except Exception as e:
-        db.session.rollback()
-        print(e)
-        return jsonify({'error': str(e)}), 400
+		return jsonify({'message': 'Period created successfully.'}), 201
+	except ValueError as e:
+		db.session.rollback()
+		return jsonify({'error': str(e)}), 400
+	except Exception as e:
+		db.session.rollback()
+		print(e)
+		return jsonify({'error': str(e)}), 500
