@@ -1,32 +1,33 @@
 from models import db
-from enum import Enum
-
+from datetime import datetime
 
 class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
-    class DayOfWeek(Enum):
-        MO = 1
-        TU = 2
-        WE = 3
-        TH = 4
-        FR = 5
-        SA = 6
-        SU = 7
-    day_of_week = db.Column(db.Enum(DayOfWeek), nullable=False)
-
-    drug_name = db.Column(db.String(255), nullable=True)
-    remind_time = db.Column(db.Time, nullable=False)
+    period_id = db.Column(db.Integer, db.ForeignKey('period.id'), nullable=False)
     message = db.Column(db.String(255), nullable=False)
-    # Null means it will repeat forever
-    end_date = db.Column(db.Date, nullable=True)
+    time = db.Column(db.Time, nullable=False)
 
     def serialize(self):
         return {
             'id': self.id,
-            'day_of_week': self.day_of_week.name,
-            'remind_time': self.remind_time.strftime('%H:%M:%S'),
-            'drug_name': self.drug_name.strip(),
+            'period_id': self.period_id,
             'message': self.message,
-            'end_date': self.end_date.strftime('%Y-%m-%d') if self.end_date else None
+            'time': self.time.strftime('%H:%M')
+        }
+
+    @staticmethod
+    def deserialize(data):
+        time = datetime.strptime(data['time'], '%H:%M').time()
+        return Schedule(
+            period_id=data['period_id'],
+            message=data['message'],
+            time=time
+        )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'period_id': self.period_id,
+            'message': self.message,
+            'time': self.time.strftime('%H:%M')
         }
