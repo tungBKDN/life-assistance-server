@@ -15,7 +15,7 @@ This repository contains a Flask-based API for managing periods and their associ
 
 1. Clone the repository:
     ```sh
-    git clone hhttps://github.com/tungBKDN/life-assistance-server.git
+    git clone https://github.com/tungBKDN/life-assistance-server.git
     cd life-assistance-server
     ```
 
@@ -51,16 +51,9 @@ This repository contains a Flask-based API for managing periods and their associ
 - **DELETE /api/periods/unactive**: Delete all inactive periods.
 - **GET /api/periods/agenda**: Retrieve the agenda for the current day.
 
-### Schedules
-
-- **GET /api/schedules**: Retrieve all schedules.
-- **GET /api/schedules/<int:id>**: Retrieve a specific schedule by ID.
-- **POST /api/schedules**: Create a new schedule.
-- **PUT /api/schedules/<int:id>**: Update an existing schedule by ID.
-- **DELETE /api/schedules/<int:id>**: Delete a specific schedule by ID.
 
 ## Database Migrations
 
-This project uses Flask-Migrate to handle database migrations. To create a new migration, run:
+This project uses Flask-Migrate for handling database migrations. To create a new migration, run:
 ```sh
 flask db migrate -m "Migration message"
