@@ -61,6 +61,6 @@ This repository contains a Flask-based API for managing periods and their associ
 
 ## Database Migrations
 
-This project uses Flask-Migrate for handling database migrations. To create a new migration, run:
+This project uses Flask-Migrate to handle database migrations. To create a new migration, run:
 ```sh
 flask db migrate -m "Migration message"
