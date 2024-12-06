@@ -7,6 +7,8 @@ class Schedule(db.Model):
     message = db.Column(db.String(255), nullable=False)
     time = db.Column(db.Time, nullable=False)
 
+    period = db.relationship('Period', back_populates='schedules')
+
     def serialize(self):
         return {
             'id': self.id,
