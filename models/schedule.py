@@ -4,7 +4,7 @@ from datetime import datetime
 class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     period_id = db.Column(db.Integer, db.ForeignKey('period.id'), nullable=False)
-    message = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.String(255), nullable=True)
     time = db.Column(db.Time, nullable=False)
 
     period = db.relationship('Period', back_populates='schedules')
