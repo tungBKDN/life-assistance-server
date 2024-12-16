@@ -4,7 +4,7 @@ from datetime import datetime
 class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     period_id = db.Column(db.Integer, db.ForeignKey('period.id'), nullable=False)
-    message = db.Column(db.String(255), nullable=True)
+    pills = db.Column(db.Integer, nullable=True)
     time = db.Column(db.Time, nullable=False)
 
     period = db.relationship('Period', back_populates='schedules')
@@ -13,7 +13,7 @@ class Schedule(db.Model):
         return {
             'id': self.id,
             'period_id': self.period_id,
-            'message': self.message,
+            'pills': self.pills,
             'time': self.time.strftime('%H:%M')
         }
 
@@ -22,7 +22,7 @@ class Schedule(db.Model):
         time = datetime.strptime(data['time'], '%H:%M').time()
         return Schedule(
             period_id=data['period_id'],
-            message=data['message'],
+            pills=data['pills'],
             time=time
         )
 
@@ -30,6 +30,6 @@ class Schedule(db.Model):
         return {
             'id': self.id,
             'period_id': self.period_id,
-            'message': self.message,
+            'pills': self.pills,
             'time': self.time.strftime('%H:%M')
         }

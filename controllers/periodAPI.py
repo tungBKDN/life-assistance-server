@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response
 from models import db
 from models.schedule import Schedule
 from models.period import Period
@@ -17,7 +17,9 @@ def get_all_periods():
 			period_dict = period.serialize()
 			period_dict['schedule_count'] = schedule_count
 			result.append(period_dict)
-		return jsonify(result)
+		result = jsonify(result)
+		result.headers['Content-Type'] = 'application/json; charset=utf-8'
+		return result
 	except Exception as e:
 		return jsonify({'error': str(e)}), 500
 
@@ -60,7 +62,7 @@ def create_period():
 			for schedule in schedules:
 				# Create a new schedule
 				time = datetime.strptime(schedule['time'], '%H:%M').time()
-				s = Schedule(period_id=period.id, message=schedule['message'], time=time)
+				s = Schedule(period_id=period.id, pills=schedule['pills'], time=time)
 				db.session.add(s)
 
 		return jsonify({'message': 'Period created successfully.'}), 201
@@ -95,7 +97,7 @@ def update_period(id):
 		schedules = data['schedules']
 		for schedule in schedules:
 			time = datetime.strptime(schedule['time'], '%H:%M').time()
-			s = Schedule(period_id=id, message=schedule['message'], time=time)
+			s = Schedule(period_id=id, pills=schedule['pills'], time=time)
 			db.session.add(s)
 
 		# Commit the transaction
@@ -116,13 +118,17 @@ def delete_period(id):
 	try:
 		period = Period.query.get(id)
 		if period is None:
-			return jsonify({'error': 'Period not found.'}), 404
+			response = make_response(jsonify({'error': 'Period not found.'}), 404)
+			response.headers.add("Access-Control-Allow-Origin", "*")
+			return response
 
 		with db.session.begin():
 			# Delete all schedules for the period
 			Schedule.query.filter_by(period_id=id).delete()
 			# Delete the period
 			db.session.delete(period)
+		response = make_response(jsonify({'message': 'Period deleted successfully.'}), 200)
+		response.headers.add("Access-Control-Allow-Origin", "*")
 
 		return jsonify({'message': 'Period deleted successfully.'}), 200
 	except Exception as e:
@@ -144,10 +150,18 @@ def get_agenda():
 		for schedule in schedules:
 			sch = schedule.serialize()
 			sch["drug_name"] = schedule.period.drug_name
+			time = schedule.time.strftime('%H:%M')
+			hours, minutes = map(int, time.split(':'))
+			total_minutes = hours * 60 + minutes
+			sch["time"] = total_minutes
 			result.append(sch)
 		res["schedules"] = result
-		res["current_local_time"] = current_local_time
-		return jsonify(res), 200
+		hours, minutes = map(int, current_local_time.strftime('%H:%M').split(':'))
+		total_minutes = hours * 60 + minutes
+		res["current_local_time"] = total_minutes
+		res = jsonify(res)
+		res.headers['Content-Type'] = 'application/json; charset=utf-8'
+		return res, 200
 	except Exception as e:
 		print(e)
 		return jsonify({'error': 'An error occurred while retrieving agenda.'}), 500
@@ -168,22 +182,22 @@ def delete_all():
 
 @period_bp.route('/periods/unactive', methods=['DELETE'])
 def delete_unactive():
-    # Delete schedules and periods that have ended
-    try:
-        current_local_time = datetime.now()
-        periods = Period.query.filter(Period.end_date < current_local_time.date()).all()
+	# Delete schedules and periods that have ended
+	try:
+		current_local_time = datetime.now()
+		periods = Period.query.filter(Period.end_date < current_local_time.date()).all()
 
-        for period in periods:
-            # Delete all schedules for the period
-            Schedule.query.filter_by(period_id=period.id).delete()
-            # Delete the period
-            db.session.delete(period)
+		for period in periods:
+			# Delete all schedules for the period
+			Schedule.query.filter_by(period_id=period.id).delete()
+			# Delete the period
+			db.session.delete(period)
 
-        # Commit the transaction
-        db.session.commit()
+		# Commit the transaction
+		db.session.commit()
 
-        return jsonify({'message': f'Unactive periods deleted successfully for {current_local_time.date()}.'}), 200
-    except Exception as e:
-        db.session.rollback()
-        print(e)
-        return jsonify({'error': 'An error occurred while deleting unactive periods.'}), 500
+		return jsonify({'message': f'Unactive periods deleted successfully for {current_local_time.date()}.'}), 200
+	except Exception as e:
+		db.session.rollback()
+		print(e)
+		return jsonify({'error': 'An error occurred while deleting unactive periods.'}), 500
