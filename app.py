@@ -7,18 +7,10 @@ from models import db
 from controllers.periodAPI import period_bp
 from flask_cors import CORS
 
-# Detect if running in serverless/read-only environment (like Vercel)
-# and use /tmp for instance path (the only writable directory)
-instance_path = None
-try:
-    # Try to write to current directory to detect read-only filesystem
-    test_file = os.path.join(os.getcwd(), '.write_test')
-    with open(test_file, 'w') as f:
-        f.write('test')
-    os.remove(test_file)
-except (OSError, IOError):
-    # Read-only filesystem detected, use /tmp
-    instance_path = '/tmp'
+# On Vercel/serverless, use /tmp as instance path (only writable directory)
+# Detect Vercel or Lambda environment
+is_serverless = os.getenv('VERCEL') or os.getenv('AWS_LAMBDA_FUNCTION_NAME')
+instance_path = '/tmp' if is_serverless else None
 
 app = Flask(__name__, instance_path=instance_path)
 database_url = os.getenv('DATABASE_URL')
