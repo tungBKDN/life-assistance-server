@@ -38,6 +38,23 @@ This repository contains a Flask-based API for managing periods and their associ
 
 2. The API will be available at `http://127.0.0.1:5000/api`.
 
+## Deploy to Vercel
+
+For Vercel, do not run `bash start.sh` as the **Build Command**. Vercel should serve this app through `@vercel/python` (configured in `vercel.json`).
+
+Recommended Project Settings:
+
+- Framework Preset: `Other`
+- Root Directory: `./`
+- Build Command: *(leave empty)*
+- Output Directory: *(leave empty)*
+- Install Command: `pip install -r requirements.txt`
+
+Notes:
+
+- `start.sh` is for traditional process-based hosting (for example, VM/Heroku-style), not for Vercel build step.
+- If you need migrations for production, run them as a separate one-off command (not as Vercel build command).
+
 ## API Endpoints
 
 ### Periods
