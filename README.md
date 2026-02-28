@@ -55,6 +55,13 @@ Notes:
 - `start.sh` is for traditional process-based hosting (for example, VM/Heroku-style), not for Vercel build step.
 - If you need migrations for production, run them as a separate one-off command (not as Vercel build command).
 
+**Database on Vercel:**
+
+- The app is configured to run SQLite on Vercel by default, storing the database at `/tmp/schedules.db`.
+- **Important**: `/tmp` is ephemeral on Vercel serverless functions. Data persists during warm starts but may be lost on cold starts (when the function container restarts).
+- For production with persistent data, set the `DATABASE_URL` environment variable to a managed database (e.g., Postgres, MySQL).
+- SQLite is suitable for testing/development on Vercel but not recommended for production without understanding the ephemeral nature.
+
 ## API Endpoints
 
 ### Periods
