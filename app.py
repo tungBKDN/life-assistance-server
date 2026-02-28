@@ -26,6 +26,11 @@ CORS(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Create all database tables if they don't exist
+# This is essential for SQLite on serverless platforms where migrations can't run
+with app.app_context():
+    db.create_all()
+
 app.register_blueprint(period_bp, url_prefix='/api')
 
 @app.route('/health')
